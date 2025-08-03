@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0.38
+    container_name: mysql
+    restart: always
+    ports:
+      - "23306:3306"                # 외부(호스트)의 23306 포트를 컨테이너 3306 포트에 매핑
+    environment:
+      MYSQL_ROOT_PASSWORD: admin1234
+      MYSQL_DATABASE: cache_practice
+    volumes:
+      - mysql_data:/var/lib/mysql   # 영속 볼륨
+    networks:
+      - backend
+
+  redis:
+    image: redis:7.2.1-alpine
+    container_name: redis
+    restart: always
+    ports:
+      - "26379:6379"                # 외부 호스트 26379 → 컨테이너 6379
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  mysql_data:

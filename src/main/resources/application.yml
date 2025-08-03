@@ -1,0 +1,59 @@
+spring:
+  profiles:
+    active: local
+  application:
+    name: cache-test
+
+  datasource:
+    # HikariCP? ?????? type? ???? ??? ???.
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      maximum-pool-size: 3
+      connection-timeout: 10000
+      max-lifetime: 60000
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    open-in-view: false
+    # generate-ddl: false # ddl-auto ? ????? ??
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate.jdbc.time_zone: UTC # JPA ???? UTC? ??
+
+# --- ??? ??? ?? ???(local)? ?? ?? ---
+---
+spring:
+  config:
+    activate:
+      on-profile: local # spring.profiles.active ?? ? ??? ? ?????.
+
+  datasource:
+    # JPA ??? ???? ?? serverTimezone? UTC? ??
+    # useSSL=false ?? ??
+    url: jdbc:mysql://localhost:23306/cache_practice?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8
+    username: root
+    password: admin1234
+
+  data:
+    redis:
+      host: localhost
+      port: 26379
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+  datasource:
+    url: jdbc:mysql://mysql:23306/cache_practice?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8
+    username: root
+    password: admin1234
+
+  data:
+    redis:
+      host: redis
+      port: 26379

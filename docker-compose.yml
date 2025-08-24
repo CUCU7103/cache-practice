@@ -3,24 +3,61 @@ version: '3.8'
 services:
   mysql:
     image: mysql:8.0.38
-    container_name: mysql
+    container_name: mysql_cp
     restart: always
     ports:
-      - "23306:3306"                # 외부(호스트)의 23306 포트를 컨테이너 3306 포트에 매핑
+      - "23306:3306"
     environment:
       MYSQL_ROOT_PASSWORD: admin1234
       MYSQL_DATABASE: cache_practice
     volumes:
-      - mysql_data:/var/lib/mysql   # 영속 볼륨
+      - mysql_data:/var/lib/mysql
     networks:
       - backend
 
   redis:
     image: redis:7.2.1-alpine
-    container_name: redis
+    container_name: redis_cp
     restart: always
     ports:
-      - "26379:6379"                # 외부 호스트 26379 → 컨테이너 6379
+      - "26379:6379"
+    networks:
+      - backend
+
+  redis_exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: redis_exporter_cp
+    command:
+      # 컨테이너 내부 Redis 포트(6379)로 연결
+      - '--redis.addr=redis:6379'
+    ports:
+      - "9121:9121"
+    depends_on:
+      - redis
+    networks:
+      - backend
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus_cp
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    depends_on:
+      - redis_exporter
+    networks:
+      - backend
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana_cp
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
     networks:
       - backend
 
@@ -30,3 +67,4 @@ networks:
 
 volumes:
   mysql_data:
+    driver: local

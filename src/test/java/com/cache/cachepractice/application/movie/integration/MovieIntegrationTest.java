@@ -65,7 +65,7 @@ public class MovieIntegrationTest {
 		MovieInfo movieInfo = movieService.searchMovie(movie.getId(),movie.getTitle());
 
 		//assert
-		assertThat(movie.getId()).isEqualTo(1);
+		assertThat(movie.getId()).isEqualTo(movieInfo.id());
 		assertThat(movie.getTitle()).isEqualTo(movieInfo.title());
 		assertThat(movie.getDescription()).isEqualTo(movieInfo.description());
 
@@ -160,7 +160,66 @@ public class MovieIntegrationTest {
 		Long ttl = redisTemplate.getExpire(CACHE_KEY_PREFIX + sampleMovie.getId());
 		// ttl이 0 보다 크면 존재하는 것이다.
 		assertThat(ttl).isGreaterThan(0);
-	}
+ }
 
+ 	@Test
+ 	@DisplayName("월별 영화 조회 캐시 기능 테스트 - 캐시 MISS → DB 조회 → 캐시 저장 → 캐시 HIT")
+ 	void integrationTest_monthMoviesCacheMissThenHit() {
+ 		// 캐시 키 접두사 정의
+ 		String CACHE_KEY_PREFIX = "movie-month-cache-key:";
+ 		int targetMonth = 8;
+		
+ 		// 테스트 데이터 준비 - 8월 영화 3개 생성
+ 		LocalDate date = LocalDate.of(2025, 8, 15);
+ 		String title = "테스트 영화";
+ 		String description = "재밌는 영화";
+ 		String genre = "코미디";
+ 		Integer duration = 120;
 
-}
+ 		Movie movie1 = Movie.create(title, description, genre, date, duration);
+ 		Movie movie2 = Movie.create(title + "2", description, genre, LocalDate.of(2025, 8, 10), duration);
+ 		Movie movie3 = Movie.create(title + "3", description, genre, LocalDate.of(2025, 8, 27), duration);
+
+ 		List<Movie> movieList = Arrays.asList(movie1, movie2, movie3);
+ 		movieJpaRepository.saveAll(movieList);
+
+ 		// 1) 초기 상태 확인 - Redis에 값이 없어야 함
+ 		assertThat(redisTemplate.opsForValue().get(CACHE_KEY_PREFIX + targetMonth))
+ 			.isNull();
+
+ 		// 2) 첫 번째 서비스 호출 (캐시 MISS 예상)
+ 		List<MovieInfo> firstCallResults = movieService.searchMonthMoviesWithCache(targetMonth);
+
+ 		// 3) 반환값 검증 - 3개의 영화가 올바른 날짜로 반환되어야 함
+ 		assertThat(firstCallResults)
+ 			.hasSize(3)
+ 			.extracting("releaseDate")
+ 			.containsExactlyInAnyOrder(
+ 				LocalDate.of(2025, 8, 15),
+ 				LocalDate.of(2025, 8, 10),
+ 				LocalDate.of(2025, 8, 27)
+ 			);
+
+ 		// 4) 캐시에 저장됐는지 검증
+ 		String cachedJson = redisTemplate.opsForValue().get(CACHE_KEY_PREFIX + targetMonth);
+ 		assertThat(cachedJson).isNotNull();
+
+ 		// 5) TTL이 설정되어 있는지 확인
+ 		Long ttl = redisTemplate.getExpire(CACHE_KEY_PREFIX + targetMonth);
+ 		assertThat(ttl).isGreaterThan(0);
+
+ 		// 6) 두 번째 서비스 호출 (캐시 HIT 예상)
+ 		List<MovieInfo> secondCallResults = movieService.searchMonthMoviesWithCache(targetMonth);
+
+ 		// 7) 두 번째 호출의 결과도 동일한지 검증
+ 		assertThat(secondCallResults)
+ 			.hasSize(3)
+ 			.extracting("title")
+ 			.containsExactlyInAnyOrder(
+ 				title,
+ 				title + "2",
+ 				title + "3"
+ 			);
+ 	}
+
+ }

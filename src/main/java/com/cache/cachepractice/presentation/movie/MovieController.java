@@ -31,5 +31,11 @@ public class MovieController {
 	}
 
 
+	@GetMapping("/month/cache/{month}")
+	public ResponseEntity<MovieListResponse> searchMovieUsedCacheReleaseMonth(@PathVariable(name = "month") int month){
+		return ResponseEntity.ok().body(MovieListResponse.of("캐시 적용 조회 성공", movieService.searchMonthMoviesWithCache(month)));
+	}
+
+
 
 }

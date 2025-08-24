@@ -12,6 +12,8 @@ import static org.assertj.core.api.Assertions.*;
 
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import com.cache.cachepractice.application.movie.MovieInfo;
@@ -28,8 +30,6 @@ public class MovieUnitTest {
 	@Mock
 	private MovieRepository movieRepository;
 
-	@Mock
-	private MovieJpaRepository movieJpaRepository;
 
 	@Mock
 	private MovieCacheRepository movieCacheRepository;
@@ -126,6 +126,78 @@ public class MovieUnitTest {
 	}
 
 
+	@Test
+	@DisplayName("월별 조회, 캐시 히트 시, DB 호출 없이 캐시된 값을 반환해야 한다. ")
+	void searchMonth_cacheHitReturnsCachedValue() {
+	    // arrange
+		LocalDate date = LocalDate.of(2025,8, 15);
+		String title= "테스트 영화";
+		String description = "재밌는 영화";
+		String genre = "코미디";
+		Integer duration = 120;
+
+		List<Movie> movieList = List.of(
+			Movie.create(title, description , genre,date, duration),
+			Movie.create(title + 2, description + 2, genre, LocalDate.of(2025,8,1), duration),
+			Movie.create(title + 3, description +3, genre,LocalDate.of(2025,8,20), duration));
+
+		int month = 8;
+
+		given(movieCacheRepository.getByMonth(month))
+			.willReturn(Optional.of(movieList));
+
+
+		// act
+		List<MovieInfo> movies = movieService.searchMonthMoviesWithCache(month);
+
+	    // assert
+		assertThat(movies).hasSize(3);
+		assertThat(movies.get(0).title()).isEqualTo(title);
+		assertThat(movies.get(1).title()).isEqualTo(title + 2);
+		assertThat(movies.get(2).title()).isEqualTo(title + 3);
+
+		// movieRepository는 전혀 호출되지 않아야 한다
+		then(movieRepository).should(never()).findByReleaseMonth(anyInt());
+
+
+	}
+
+
+	@Test
+	@DisplayName("캐시 미스 시, DB 조회 후 캐시에 저장하고 값을 반환해야 한다")
+	void searchMonth_cacheMissLoadsFromDbAndCaches() {
+		// arrange
+		LocalDate date = LocalDate.of(2025,8, 15);
+		String title= "테스트 영화";
+		String description = "재밌는 영화";
+		String genre = "코미디";
+		Integer duration = 120;
+
+		List<Movie> movieList = List.of(
+			Movie.create(title, description , genre,date, duration),
+			Movie.create(title + 2, description + 2, genre, LocalDate.of(2025,8,1), duration),
+			Movie.create(title + 3, description +3, genre,LocalDate.of(2025,8,20), duration));
+
+		int month = 8;
+
+
+		given(movieCacheRepository.getByMonth(month))
+			.willReturn(Optional.empty());
+		given(movieRepository.findByReleaseMonth(month))
+			.willReturn(movieList);
+
+		// act
+		List<MovieInfo> movies = movieService.searchMonthMoviesWithCache(month);
+
+		// assert
+		assertThat(movies).hasSize(3);
+		assertThat(movies.get(0).title()).isEqualTo(title);
+		assertThat(movies.get(1).title()).isEqualTo(title + 2);
+		assertThat(movies.get(2).title()).isEqualTo(title + 3);
+
+		// 캐시에 저장됐는지 확인
+		then(movieCacheRepository).should().putByMonth(month,movies);
+	}
 
 
 

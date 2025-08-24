@@ -48,10 +48,15 @@ public class TestContainerConfiguration {
 			);
 		REDIS_CONTAINER.start();
 
-		// Spring Data Redis
+		// Spring Data Redis (Lettuce/StringRedisTemplate)
+		System.setProperty("spring.data.redis.host", REDIS_CONTAINER.getHost());
+		System.setProperty("spring.data.redis.port", REDIS_CONTAINER.getFirstMappedPort().toString());
+
+		// Also set legacy properties for libraries expecting spring.redis.*
 		System.setProperty("spring.redis.host", REDIS_CONTAINER.getHost());
 		System.setProperty("spring.redis.port", REDIS_CONTAINER.getFirstMappedPort().toString());
-		// Redisson Spring Boot Starter 우선순위가 높은 single-server 설정
+
+		// Redisson Spring Boot Starter single-server 설정
 		System.setProperty(
 			"spring.redisson.single-server-config.address",
 			String.format("redis://%s:%d",

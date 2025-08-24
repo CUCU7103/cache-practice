@@ -1,3 +1,9 @@
 ### 영화 조회 API 예시
 GET http://localhost:8080/api/v1/movies/month/8
 Content-Type: application/json
+
+
+
+### 영화 조회 API 예시
+GET http://localhost:8080/api/v1/movies/month/cache/8
+Content-Type: application/

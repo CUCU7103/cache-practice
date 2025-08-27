@@ -28,7 +28,7 @@ spring:
 
   datasource:
 
-    url: jdbc:mysql://localhost:23306/cache_practice?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8
+    url: jdbc:mysql://localhost:23306/cache_practice?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8
     username: root
     password: admin1234
 

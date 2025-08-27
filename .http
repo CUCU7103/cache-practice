@@ -7,3 +7,11 @@ Content-Type: application/json
 ### 영화 조회 API 예시
 GET http://localhost:8080/api/v1/movies/month/cache/8
 Content-Type: application/
+
+### MovieV2Controller - 월별 영화 조회 API (8월)
+GET http://localhost:8080/api/v2/movies/monthly/8
+Content-Type: application/json
+
+### MovieV2Controller - 월별 영화 조회 API (12월)
+GET http://localhost:8080/api/v2/movies/monthly/12
+Content-Type: application/json

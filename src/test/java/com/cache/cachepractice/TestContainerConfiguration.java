@@ -19,7 +19,16 @@ public class TestContainerConfiguration {
 		MYSQL_CONTAINER = new MySQLContainer<>(DockerImageName.parse("mysql:8.0"))
 			.withDatabaseName("cache_test")
 			.withUsername("test")
-			.withPassword("test");
+			.withPassword("test")
+            // ✅ 빠른 기동 플래그
+            .withCommand(
+                "--skip-log-bin",                      // 바이너리 로그 비활성
+                "--skip-name-resolve",                 // DNS 역조회 비활성
+                "--performance-schema=OFF",            // Performance Schema 비활성
+                "--innodb_flush_log_at_trx_commit=2",  // fsync 강도 완화(테스트용)
+                "--sync-binlog=0",                     // binlog fsync 완화(binlog off 시 영향 없음)
+                "--skip-ssl"                           // SSL 비활성
+            );
 		MYSQL_CONTAINER.start();
 
 		System.setProperty("spring.datasource.url",

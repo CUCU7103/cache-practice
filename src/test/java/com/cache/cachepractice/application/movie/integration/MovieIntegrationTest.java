@@ -34,9 +34,6 @@ public class MovieIntegrationTest {
 	private MovieJpaRepository movieJpaRepository;
 
 	@Autowired
-	private MovieCacheRepository movieCacheRepository;
-
-	@Autowired
 	private StringRedisTemplate redisTemplate;
 
 	@Autowired
@@ -45,8 +42,7 @@ public class MovieIntegrationTest {
 
 	@BeforeEach
 	void setUp() {
-		// DB, Redis 초기화
-		movieJpaRepository.deleteAll();
+		log.info("Redis 데이터 초기화");
 		redisTemplate.getConnectionFactory().getConnection().flushAll();
 	}
 
@@ -102,8 +98,8 @@ public class MovieIntegrationTest {
 		Integer duration = 120;
 
 		Movie movie1 = Movie.create(title, description, genre,date, duration);
-		Movie movie2 = Movie.create(title+1, description+1 , genre + 1, LocalDate.of(2025,8,10),duration	);
-		Movie movie3 = Movie.create(title+2, description+2 , genre + 2, LocalDate.of(2025,8,27),duration );
+		Movie movie2 = Movie.create(title+1, description+1 , genre + 1, LocalDate.of(2025,8,10),duration);
+		Movie movie3 = Movie.create(title+2, description+2 , genre + 2, LocalDate.of(2025,8,27),duration);
 
 		List<Movie> movieList = Arrays.asList(movie1,movie2,movie3);
 		movieJpaRepository.saveAll(movieList);

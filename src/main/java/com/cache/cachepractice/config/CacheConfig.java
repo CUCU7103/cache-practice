@@ -15,7 +15,7 @@ import java.util.HashMap; // 해시맵 자료구조
 import java.util.Map; // 맵 인터페이스
 
 @Configuration // 이 클래스가 스프링의 설정 정보를 담고 있음을 선언합니다.
-public class RedisCacheConfig {
+public class CacheConfig {
 
     @Bean // 이 메소드가 생성하는 객체를 스프링 컨테이너가 관리하는 빈(Bean)으로 등록합니다.
     public CacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) { // 캐시 매니저 빈을 생성하는 메소드입니다. 레디스 연결 팩토리를 주입받습니다.

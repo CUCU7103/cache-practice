@@ -9,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @RestControllerAdvice
 @Slf4j
-public class ApiControllerAdvice {
+public class GlobalControllerAdvice {
 
 	@ExceptionHandler(value = Exception.class)
 	public ResponseEntity<ErrorResponse> handleException(Exception e, HttpServletRequest request) {

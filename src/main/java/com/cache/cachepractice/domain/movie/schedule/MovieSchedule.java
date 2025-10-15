@@ -26,7 +26,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-@Table(name ="movie_schedules")
+@Table(name ="movie_schedule")
 public class MovieSchedule {
 
 	@Id

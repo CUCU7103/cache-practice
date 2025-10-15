@@ -1,12 +1,11 @@
 package com.cache.cachepractice.application.movie;
 
-import static org.springframework.data.jpa.domain.AbstractPersistable_.*;
-
+import com.cache.cachepractice.domain.movie.schedule.MovieSchedule;
+import com.cache.cachepractice.infrastructure.movie.MovieCacheRepository;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.OptionalInt;
-import java.util.stream.Collectors;
 
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,11 +13,9 @@ import com.cache.cachepractice.domain.movie.Movie;
 import com.cache.cachepractice.domain.movie.MovieRepository;
 import com.cache.cachepractice.global.error.CustomErrorCode;
 import com.cache.cachepractice.global.error.CustomException;
-import com.cache.cachepractice.infrastructure.movie.MovieCacheRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 
 @Service
 @RequiredArgsConstructor
@@ -26,7 +23,8 @@ import org.springframework.cache.annotation.Cacheable;
 public class MovieService {
 
 	private final MovieRepository movieRepository;
-	private final MovieCacheRepository movieCacheRepository;
+    private final MovieCacheRepository movieCacheRepository;
+
 
 	// 영화 단건 조회 (pk를 인덱스로 사용함)
 	@Transactional(readOnly = true)
@@ -38,6 +36,13 @@ public class MovieService {
 		return MovieInfo.from(movie);
 	}
 
+    @Transactional(readOnly = true)
+    public List<MovieScheduleInfo> searchSchedules(long movieId) {
+        List<MovieSchedule> movieSchedule = movieRepository.findAllMovieScheduleByMovieId(movieId);
+        return movieSchedule.stream().map(MovieScheduleInfo::from).toList();
+
+    }
+
 	// 특정 월의 개봉영화를 조회하기
 	@Transactional(readOnly = true)
 	public List<MovieInfo> searchMonthMovies(int month){
@@ -45,8 +50,28 @@ public class MovieService {
 		return movies.stream().map(MovieInfo::from).toList();
 	}
 
+    
 
+    @Transactional
+    public MovieInfo searchMovieForCache(long movieId){
+        // cache - aside
+        // 1. 먼저 캐시 조회 하고 없으면 db 조회 후 값을 가져옴
+        Optional<Movie> cachedMovie = movieCacheRepository.get(movieId);
+        if(cachedMovie.isPresent()){
+            return MovieInfo.from(cachedMovie.get());
+        }
+        // 캐시에 값이 없다면 DB 조회
+        Movie movie = movieRepository.findMovieId(movieId)
+                .orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_MOVIE));
+        // 그리고 캐시에 저장
+        movieCacheRepository.put(movie);
+        // 값 반환하기
+        return MovieInfo.from(movie);
+    }
+    
+    
 
+/*
 	// --- Below is the code with @Cacheable annotation for comparison ---
 
 	// @Cacheable 애노테이션을 사용한 단일 영화 조회 메소드입니다.
@@ -66,5 +91,5 @@ public class MovieService {
 		log.info("Annotation-based Cache Miss - DB lookup for month: {}", month); // 캐시 미스가 발생하여 DB를 조회할 경우 로그를 남깁니다.
 		List<Movie> movies = movieRepository.findByReleaseMonth(month); // 데이터베이스에서 해당 월에 개봉한 영화 목록을 조회합니다.
 		return movies.stream().map(MovieInfo::from).toList(); // 조회된 영화 목록을 MovieInfo 객체 리스트로 변환하여 반환합니다.
-	}
+	}*/
 }

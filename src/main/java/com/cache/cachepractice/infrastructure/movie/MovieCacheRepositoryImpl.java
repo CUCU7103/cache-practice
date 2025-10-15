@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -25,7 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 public class MovieCacheRepositoryImpl implements MovieCacheRepository{
 
 	private final StringRedisTemplate redisTemplate;
-	private final ObjectMapper objectMapper;
+	private final ObjectMapper objectMapper; // 직렬화를 해주기 위함
 	private static final Duration CACHE_TTL = Duration.ofMinutes(10);
 
 	private String key(Long id) {
@@ -43,6 +44,7 @@ public class MovieCacheRepositoryImpl implements MovieCacheRepository{
 		String serialized = redisTemplate.opsForValue().get(key(id));
 		if (serialized == null) {
 			// 값이 존재하지 않으면 빈 값 반환
+            log.info("cache-miss");
 			return Optional.empty();
 		}
 		log.info("cache-hit");

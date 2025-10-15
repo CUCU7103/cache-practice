@@ -12,27 +12,21 @@ import static org.assertj.core.api.Assertions.*;
 
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 
-import com.cache.cachepractice.application.movie.MovieInfo;
 import com.cache.cachepractice.application.movie.MovieService;
 import com.cache.cachepractice.domain.movie.Movie;
 import com.cache.cachepractice.domain.movie.MovieRepository;
 import com.cache.cachepractice.global.error.CustomErrorCode;
 import com.cache.cachepractice.global.error.CustomException;
-import com.cache.cachepractice.infrastructure.movie.MovieCacheRepository;
-import com.cache.cachepractice.infrastructure.movie.MovieJpaRepository;
 
 @ExtendWith(MockitoExtension.class)
-public class MovieUnitTest {
+public class MovieServiceUnitTest {
 	@Mock
 	private MovieRepository movieRepository;
 
 
-	@Mock
-	private MovieCacheRepository movieCacheRepository;
+/*	@Mock
+	private MovieCacheRepository movieCacheRepository;*/
 
 	@InjectMocks
 	private MovieService movieService;
@@ -71,7 +65,7 @@ public class MovieUnitTest {
 
 	}
 
-
+/*
 	@Test
 	@DisplayName("캐시 히트 시, DB 호출 없이 캐시된 값을 반환해야 한다")
 	void cacheHitReturnsCachedValue() {
@@ -197,7 +191,7 @@ public class MovieUnitTest {
 
 		// 캐시에 저장됐는지 확인
 		then(movieCacheRepository).should().putByMonth(month,movies);
-	}
+	}*/
 
 
 

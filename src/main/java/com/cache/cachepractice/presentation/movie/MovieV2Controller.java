@@ -14,7 +14,7 @@ public class MovieV2Controller {
 
     private final MovieService movieService; // 비즈니스 로직을 수행할 MovieService 객체입니다.
 
-    @GetMapping("/{movieId}") // HTTP GET 요청을 "/{movieId}" 경로와 매핑합니다.
+   /* @GetMapping("/{movieId}") // HTTP GET 요청을 "/{movieId}" 경로와 매핑합니다.
     public ResponseEntity<MovieResponse> searchMovie( // 단일 영화를 조회하는 API 엔드포인트입니다.
             @PathVariable(name = "movieId") long movieId, // URL 경로에서 movieId 값을 추출하여 메소드 파라미터로 받습니다.
             @RequestParam(name = "title") String title) { // 요청 파라미터에서 title 값을 추출하여 메소드 파라미터로 받습니다.
@@ -27,5 +27,5 @@ public class MovieV2Controller {
             @PathVariable(name = "month") int month) { // URL 경로에서 month 값을 추출하여 메소드 파라미터로 받습니다.
         // movieService의 애노테이션 기반 월별 조회 메소드를 호출하고, 그 결과를 성공(200 OK) 응답으로 반환합니다.
         return ResponseEntity.ok().body(MovieListResponse.of("[@Cacheable] 월별 조회 성공", movieService.searchMonthMoviesWithAnnotation(month)));
-    }
+    }*/
 }

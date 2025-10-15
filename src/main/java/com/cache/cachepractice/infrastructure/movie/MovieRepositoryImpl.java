@@ -1,5 +1,6 @@
 package com.cache.cachepractice.infrastructure.movie;
 
+import com.cache.cachepractice.domain.movie.schedule.MovieSchedule;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,13 +32,19 @@ import lombok.RequiredArgsConstructor;
 public class MovieRepositoryImpl implements MovieRepository {
 
 	private final MovieJpaRepository movieJpaRepository;
+    private final MovieScheduleJpaRepository movieScheduleJpaRepository;
 
 	@Override
-	public Optional<Movie> findMovieIdAndTitle(long id ,String title) {
-		return movieJpaRepository.findByIdAndTitle(id,title);
+	public Optional<Movie> findMovieIdAndTitle(long movieId ,String title) {
+		return movieJpaRepository.findByIdAndTitle(movieId,title);
 	}
 
-	@Override
+    @Override
+    public Optional<Movie> findMovieId(long movieId) {
+        return movieJpaRepository.findById(movieId);
+    }
+
+    @Override
 	public Movie save(Movie movie) {
 		return movieJpaRepository.save(movie);
 	}
@@ -46,4 +53,9 @@ public class MovieRepositoryImpl implements MovieRepository {
 	public List<Movie> findByReleaseMonth(int month) {
 		return movieJpaRepository.findByReleaseMonth(month);
 	}
+
+    @Override
+    public List<MovieSchedule> findAllMovieScheduleByMovieId(long movieId) {
+        return movieScheduleJpaRepository.findAllByMovieId(movieId);
+    }
 }

@@ -19,7 +19,6 @@ import com.cache.cachepractice.application.movie.MovieService;
 import com.cache.cachepractice.domain.movie.Movie;
 import com.cache.cachepractice.global.error.CustomErrorCode;
 import com.cache.cachepractice.global.error.CustomException;
-import com.cache.cachepractice.infrastructure.movie.MovieCacheRepository;
 import com.cache.cachepractice.infrastructure.movie.MovieJpaRepository;
 
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 @SpringBootTest
 @Slf4j
 @ActiveProfiles("test")
-public class MovieIntegrationTest {
+public class MovieServiceIntegrationTest {
 
 	@Autowired
 	private MovieJpaRepository movieJpaRepository;
@@ -120,7 +119,44 @@ public class MovieIntegrationTest {
 
 	}
 
-	@Test
+    @Test
+    @DisplayName("캐시 MISS → DB 조회 → 캐시에 저장 후 반환")
+    void cacheMissTest(){
+        String CACHE_KEY_PREFIX = "movie-cache-key:";
+
+        LocalDate date = LocalDate.of(2025,8, 15);
+        String title= "테스트 영화";
+        String description = "재밌는 영화";
+        String genre = "코미디";
+        Integer duration = 120;
+
+        Movie sampleMovie = movieJpaRepository.save(Movie.create(title, description, genre,date, duration));
+        log.info(sampleMovie.getId().toString());
+
+        // 1) Redis에 값이 없어야 한다
+        assertThat(redisTemplate.opsForValue().get(CACHE_KEY_PREFIX + sampleMovie.getId()))
+            .isNull();
+
+        // 2) 서비스 호출 (캐시 MISS)
+        MovieInfo info1 = movieService.searchMovieForCache(
+            sampleMovie.getId());
+
+        // 3) 반환값 검증
+        assertThat(info1.id()).isEqualTo(sampleMovie.getId());
+        assertThat(info1.title()).isEqualTo(sampleMovie.getTitle());
+
+        // 4) 캐시에 저장됐는지 검증
+        String cachedJson = redisTemplate.opsForValue().get(CACHE_KEY_PREFIX + sampleMovie.getId());
+        assertThat(cachedJson).isNotNull();
+
+        // 5) TTL이 설정되어 있다면 확인 (Optional)
+        // Redis 기본 TTL 설정이 있다면, 아래처럼 확인할 수 있습니다.
+        Long ttl = redisTemplate.getExpire(CACHE_KEY_PREFIX + sampleMovie.getId());
+        // ttl이 0 보다 크면 존재하는 것이다.
+        assertThat(ttl).isGreaterThan(0);
+    }
+
+/*	@Test
 	@DisplayName("캐시 MISS → DB 조회 → 캐시에 저장 후 반환")
 	void integrationTest_cacheMissThenStore() {
 
@@ -216,6 +252,6 @@ public class MovieIntegrationTest {
  				title + "2",
  				title + "3"
  			);
- 	}
+ 	}*/
 
  }
